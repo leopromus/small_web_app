@@ -1,0 +1,59 @@
+services:
+  # Backend API Service
+  - type: web
+    name: small-app-backend
+    runtime: node
+    repo: https://github.com/yourusername/small_app
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: small-app-mysql
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: small-app-mysql
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: small-app-mysql
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: small-app-mysql
+          property: database
+      - key: DB_PORT
+        value: 3306
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    healthCheckPath: /health
+    domains:
+      - api.yourdomain.com
+
+  # Frontend Static Site
+  - type: web
+    name: small-app-frontend
+    runtime: static
+    repo: https://github.com/yourusername/small_app
+    plan: free
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          name: small-app-backend
+          type: web
+          envVarKey: REACT_APP_API_URL
+          property: host
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    domains:
+      - yourdomain.com
+
+# Managed MySQL Database on Render
+databases:
+  - name: small-app-mysql
+    plan: free
+    databaseName: small_app
+    user: small_app_user
+    ipAllowList: [] # Allow all connections (secured by password)
