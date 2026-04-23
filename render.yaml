@@ -13,9 +13,13 @@ services:
           name: small-app-mysql
           property: host
       - key: DB_USER
-        value: root                    # Your MySQL username
+        fromDatabase:
+          name: small-app-mysql
+          property: user
       - key: DB_PASSWORD
-        value: Iwacu@2o19              # Your MySQL password
+        fromDatabase:
+          name: small-app-mysql
+          property: password
       - key: DB_NAME
         fromDatabase:
           name: small-app-mysql
@@ -29,8 +33,6 @@ services:
     startCommand: |
       cd backend && node server.js
     healthCheckPath: /health
-    domains:
-      - api.yourdomain.com
 
   # Frontend Static Site
   - type: web
@@ -40,18 +42,15 @@ services:
     plan: free
     envVars:
       - key: REACT_APP_API_URL
-        value: https://api.yourdomain.com
+        value: https://small-app-backend.onrender.com
     buildCommand: |
       cd small_app && npm install && npm run build
     staticPublishPath: ./small_app/build
-    domains:
-      - yourdomain.com
 
 # Managed MySQL Database on Render
 databases:
   - name: small-app-mysql
     plan: free
     databaseName: small_app
-    user: root                        # Your MySQL username
-    password: Iwacu@2o19              # Your MySQL password
-    ipAllowList: []                   # Allow all connections (secured by password)
+    # REMOVED: user and password - Render auto-generates these
+    ipAllowList: []
